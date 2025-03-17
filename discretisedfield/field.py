@@ -3555,6 +3555,13 @@ class Field(_FieldIO):
         res = xrfield.sel(**kwargs, method="nearest")
         if vdims:
             res = res.sel(vdims=vdims)
+
+        # drop directions with only one cell
+        # (causes crash in holoviews because they are filtered out of the vdims)
+        for dim in self.mesh.region.dims:
+            if len(getattr(self.mesh.cells, dim)) == 1:
+                res = res.isel({dim: 0})
+
         return res
 
     def _hv_vdims_guess(self, kdims):
